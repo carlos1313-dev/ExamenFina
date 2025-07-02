@@ -1,0 +1,36 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api/auth
+
+spring:
+  application:
+    name: instagram-auth-service
+  
+  datasource:
+    url: jdbc:h2:mem:instagram_auth
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        
+  thymeleaf:
+    cache: false
+    
+logging:
+  level:
+    com.instagram.auth: DEBUG
+    org.springframework.web: DEBUG
