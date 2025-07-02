@@ -11,42 +11,45 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "username"),
+    @UniqueConstraint(columnNames = "email")
+})
 public class User {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 100)
     @Email(message = "Email debe tener un formato válido")
     @NotBlank(message = "Email es obligatorio")
     private String email;
     
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name", nullable = false, length = 100)
     @NotBlank(message = "Nombre completo es obligatorio")
     @Size(min = 2, max = 100, message = "Nombre debe tener entre 2 y 100 caracteres")
     private String fullName;
     
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 30)
     @NotBlank(message = "Usuario es obligatorio")
     @Size(min = 3, max = 30, message = "Usuario debe tener entre 3 y 30 caracteres")
     private String username;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     @NotBlank(message = "Contraseña es obligatoria")
     @Size(min = 6, message = "Contraseña debe tener al menos 6 caracteres")
     private String password;
     
-    @Column(name = "is_active")
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
     // Constructores
