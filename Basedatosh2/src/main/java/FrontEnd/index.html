@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram - Registro e Inicio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 35px;
+            font-weight: bold;
+            color: #833ab4;
+            margin-bottom: 20px;
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #833ab4;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .switch-link a {
+            color: #833ab4;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .switch-link a:hover {
+            text-decoration: underline;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #833ab4;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Instagram</div>
+        
+        <!-- Mensajes -->
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <!-- Formulario de Registro -->
+        <div id="registerForm" class="form active">
+            <form id="registerFormElement">
+                <input type="email" id="regEmail" name="email" placeholder="Email" required>
+                <input type="text" id="regFullName" name="fullName" placeholder="Nombre completo" required>
+                <input type="text" id="regUsername" name="username" placeholder="Usuario" required>
+                <input type="password" id="regPassword" name="password" placeholder="Contraseña" required>
+                
+                <button type="submit" class="btn" id="registerBtn">Registrarse</button>
+            </form>
+            
+            <div class="switch-link">
+                ¿Ya tienes cuenta? <a onclick="showLogin()">Inicia sesión</a>
+            </div>
+        </div>
+        
+        <!-- Formulario de Inicio de Sesión -->
+        <div id="loginForm" class="form">
+            <form id="loginFormElement">
+                <input type="text" id="loginUsername" name="usernameOrEmail" placeholder="Usuario o email" required>
+                <input type="password" id="loginPassword" name="password" placeholder="Contraseña" required>
+                
+                <button type="submit" class="btn" id="loginBtn">Iniciar sesión</button>
+            </form>
+            
+            <div class="forgot-password">
+                <a href="#">¿Olvidaste tu contraseña?</a>
+            </div>
+            
+            <div class="switch-link">
+                ¿No tienes cuenta? <a onclick="showRegister()">Regístrate</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API
+        const API_BASE_URL = 'http://localhost:8081/api/auth';
+
+        // Elementos del DOM
+        const messageElement = document.getElementById('message');
+        const registerForm = document.getElementById('registerFormElement');
+        const loginForm = document.getElementById('loginFormElement');
+
+        // Funciones para cambiar entre formularios
+        function showLogin() {
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+            clearMessage();
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+            clearMessage();
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(text, type) {
+            messageElement.textContent = text;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+        }
+
+        function clearMessage() {
+            messageElement.style.display = 'none';
+        }
+
+        // Función para hacer peticiones a la API
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            const config = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            if (data && method !== 'GET') {
+                config.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+            return response.json();
+        }
+
+        // Manejar registro
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Registrando...';
+            
+            showMessage('Registrando usuario...', 'loading');
+
+            const formData = new FormData(registerForm);
+            const userData = {
+                email: formData.get('email'),
+                fullName: formData.get('fullName'),
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await apiRequest('/users/register', 'POST', userData);
+                
+                if (response.success) {
+                    showMessage('¡Usuario registrado exitosamente! Ahora puedes iniciar sesión.', 'success');
+                    registerForm.reset();
+                    setTimeout(() => showLogin(), 2000);
+                } else {
+                    showMessage(response.message || 'Error al registrar usuario', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error de conexión. Verifica que el servidor esté funcionando.', 'error');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Registrarse';
+            }
+        });
+
+        // Manejar login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Iniciando sesión...';
+            
+            showMessage('Iniciando sesión...', 'loading');
+
+            const formData = new FormData(loginForm);
+            const loginData = {
+                usernameOrEmail: formData.get('usernameOrEmail'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await apiRequest('/users/login', 'POST', loginData);
+                
+                if (response.success) {
+                    showMessage(`¡Bienvenido, ${response.user.fullName}!`, 'success');
+                    // Aquí podrías redirigir al usuario o guardar los datos de sesión
+                    console.log('Usuario logueado:', response.user);
+                    
+                    // Simular redirección después de 2 segundos
+                    setTimeout(() => {
+                        alert('¡Login exitoso! Aquí redirigirías al dashboard.');
+                    }, 2000);
+                } else {
+                    showMessage(response.message || 'Credenciales inválidas', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error de conexión. Verifica que el servidor esté funcionando.', 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Iniciar sesión';
+            }
+        });
+
+        // Función para probar la conexión con el backend
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/check-username/test`);
+                if (response.ok) {
+                    console.log('✅ Conexión con el backend exitosa');
+                } else {
+                    console.log('⚠️ Backend responde pero hay un error');
+                }
+            } catch (error) {
+                console.log('❌ No se puede conectar con el backend:', error);
+                showMessage('No se puede conectar con el servidor. Verifica que esté funcionando en el puerto 8081.', 'error');
+            }
+        }
+
+        // Probar conexión al cargar la página
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>
