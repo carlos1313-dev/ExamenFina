@@ -1,82 +1,232 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.instagram.perfil.model;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-/**
- *
- * @author sangr
- */
+@Entity
+@Table(name = "perfiles")
 public class Perfil {
-    private ArrayList <String> posts;
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "user_id", unique = true, nullable = false)
+    @NotNull(message = "ID de usuario es obligatorio")
+    private Long userId;
+    
+    @Column(name = "img_perfil", length = 500)
     private String imgPerfil;
+    
+    @Column(name = "biografia", length = 500)
+    @Size(max = 500, message = "La biografía no puede exceder 500 caracteres")
     private String biografia;
-    private int numPosts;
-    private int seguidores;
-    private int seguidos;
-
-    public Perfil(ArrayList<String> posts, String imgPerfil, String biografia, int numPosts, int seguidores, int seguidos) {
-        this.posts = posts;
+    
+    @Column(name = "num_posts", nullable = false)
+    private Integer numPosts = 0;
+    
+    @Column(name = "seguidores", nullable = false)
+    private Integer seguidores = 0;
+    
+    @Column(name = "seguidos", nullable = false)
+    private Integer seguidos = 0;
+    
+    @Column(name = "is_private", nullable = false)
+    private Boolean isPrivate = false;
+    
+    @ElementCollection
+    @CollectionTable(name = "perfil_posts", joinColumns = @JoinColumn(name = "perfil_id"))
+    @Column(name = "post_url")
+    private List<String> posts = new ArrayList<>();
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+    
+    // Constructores
+    public Perfil() {
+        this.numPosts = 0;
+        this.seguidores = 0;
+        this.seguidos = 0;
+        this.isPrivate = false;
+        this.posts = new ArrayList<>();
+    }
+    
+    public Perfil(Long userId) {
+        this();
+        this.userId = userId;
+    }
+    
+    public Perfil(Long userId, String imgPerfil, String biografia) {
+        this(userId);
         this.imgPerfil = imgPerfil;
         this.biografia = biografia;
-        this.numPosts = numPosts;
-        this.seguidores = seguidores;
-        this.seguidos = seguidos;
     }
-
-    public ArrayList<String> getPosts() {
-        return posts;
+    
+    // Getters y Setters
+    public Long getId() {
+        return id;
     }
-
-    public void setPosts(ArrayList<String> posts) {
-        this.posts = posts;
+    
+    public void setId(Long id) {
+        this.id = id;
     }
-
+    
+    public Long getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+    
     public String getImgPerfil() {
         return imgPerfil;
     }
-
+    
     public void setImgPerfil(String imgPerfil) {
         this.imgPerfil = imgPerfil;
     }
-
+    
     public String getBiografia() {
         return biografia;
     }
-
+    
     public void setBiografia(String biografia) {
         this.biografia = biografia;
     }
-
-    public int getNumPosts() {
+    
+    public Integer getNumPosts() {
         return numPosts;
     }
-
-    public void setNumPosts(int numPosts) {
+    
+    public void setNumPosts(Integer numPosts) {
         this.numPosts = numPosts;
     }
-
-    public int getSeguidores() {
+    
+    public Integer getSeguidores() {
         return seguidores;
     }
-
-    public void setSeguidores(int seguidores) {
+    
+    public void setSeguidores(Integer seguidores) {
         this.seguidores = seguidores;
     }
-
-    public int getSeguidos() {
+    
+    public Integer getSeguidos() {
         return seguidos;
     }
-
-    public void setSeguidos(int seguidos) {
+    
+    public void setSeguidos(Integer seguidos) {
         this.seguidos = seguidos;
     }
-
     
+    public Boolean getIsPrivate() {
+        return isPrivate;
+    }
     
+    public void setIsPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
     
-            
+    public List<String> getPosts() {
+        return posts;
+    }
+    
+    public void setPosts(List<String> posts) {
+        this.posts = posts;
+        this.numPosts = posts != null ? posts.size() : 0;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    // Métodos de utilidad
+    public void addPost(String postUrl) {
+        if (this.posts == null) {
+            this.posts = new ArrayList<>();
+        }
+        this.posts.add(postUrl);
+        this.numPosts = this.posts.size();
+    }
+    
+    public void removePost(String postUrl) {
+        if (this.posts != null) {
+            this.posts.remove(postUrl);
+            this.numPosts = this.posts.size();
+        }
+    }
+    
+    public void incrementSeguidores() {
+        this.seguidores++;
+    }
+    
+    public void decrementSeguidores() {
+        if (this.seguidores > 0) {
+            this.seguidores--;
+        }
+    }
+    
+    public void incrementSeguidos() {
+        this.seguidos++;
+    }
+    
+    public void decrementSeguidos() {
+        if (this.seguidos > 0) {
+            this.seguidos--;
+        }
+    }
+    
+    @Override
+    public String toString() {
+        return "Perfil{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", biografia='" + biografia + '\'' +
+                ", numPosts=" + numPosts +
+                ", seguidores=" + seguidores +
+                ", seguidos=" + seguidos +
+                ", isPrivate=" + isPrivate +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Perfil perfil = (Perfil) o;
+        return Objects.equals(id, perfil.id) && 
+               Objects.equals(userId, perfil.userId);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userId);
+    }
 }
