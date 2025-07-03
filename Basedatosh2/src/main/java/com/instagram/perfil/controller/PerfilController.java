@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@RestController
+@Controller
 @RequestMapping("/perfiles")
 @CrossOrigin(origins = "*")
 public class PerfilController {
@@ -30,14 +32,40 @@ public class PerfilController {
     }
     
     /**
-     * Crear perfil básico para un usuario
+     * Mostrar página de perfil (Frontend Thymeleaf)
+     */
+    @GetMapping("/ver/{userId}")
+    public String mostrarPerfil(@PathVariable Long userId, Model model) {
+        try {
+            Optional<Perfil> perfilOpt = perfilService.getPerfilByUserId(userId);
+            
+            if (perfilOpt.isPresent()) {
+                model.addAttribute("usuario", perfilOpt.get());
+                return "perfil";
+            } else {
+                model.addAttribute("error", "Perfil no encontrado");
+                return "error";
+            }
+            
+        } catch (Exception e) {
+            log.error("Error al mostrar perfil para usuario {}: {}", userId, e.getMessage());
+            model.addAttribute("error", "Error al cargar el perfil");
+            return "error";
+        }
+    }
+    
+    /**
+     * Crear perfil básico para un usuario - API REST
      */
     @PostMapping("/crear/{userId}")
-    public ResponseEntity<Map<String, Object>> crearPerfil(@PathVariable Long userId) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> crearPerfil(
+            @PathVariable Long userId,
+            @RequestParam String username) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            Perfil perfil = perfilService.createPerfil(userId);
+            Perfil perfil = perfilService.createPerfil(userId, username);
             
             response.put("success", true);
             response.put("message", "Perfil creado exitosamente");
@@ -56,19 +84,21 @@ public class PerfilController {
     }
     
     /**
-     * Crear perfil con datos iniciales
+     * Crear perfil con datos iniciales - API REST
      */
     @PostMapping("/crear")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> crearPerfilConDatos(@RequestBody Map<String, Object> perfilData) {
         Map<String, Object> response = new HashMap<>();
         
         try {
             Long userId = Long.valueOf(perfilData.get("userId").toString());
+            String username = (String) perfilData.get("username");
             String imgPerfil = (String) perfilData.get("imgPerfil");
             String biografia = (String) perfilData.get("biografia");
             Boolean isPrivate = (Boolean) perfilData.get("isPrivate");
             
-            Perfil perfil = perfilService.createPerfilWithData(userId, imgPerfil, biografia, isPrivate);
+            Perfil perfil = perfilService.createPerfilWithData(userId, username, imgPerfil, biografia, isPrivate);
             
             response.put("success", true);
             response.put("message", "Perfil creado exitosamente con datos");
@@ -87,9 +117,10 @@ public class PerfilController {
     }
     
     /**
-     * Obtener perfil por ID de usuario
+     * Obtener perfil por ID de usuario - API REST
      */
     @GetMapping("/usuario/{userId}")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> getPerfilByUserId(@PathVariable Long userId) {
         Map<String, Object> response = new HashMap<>();
         
@@ -109,9 +140,10 @@ public class PerfilController {
     }
     
     /**
-     * Obtener perfil por ID
+     * Obtener perfil por ID - API REST
      */
     @GetMapping("/{perfilId}")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> getPerfilById(@PathVariable Long perfilId) {
         Map<String, Object> response = new HashMap<>();
         
@@ -131,9 +163,10 @@ public class PerfilController {
     }
     
     /**
-     * Actualizar perfil
+     * Actualizar perfil - API REST
      */
     @PutMapping("/actualizar/{userId}")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarPerfil(
             @PathVariable Long userId,
             @RequestBody Map<String, Object> updateData) {
@@ -141,11 +174,12 @@ public class PerfilController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            String username = (String) updateData.get("username");
             String imgPerfil = (String) updateData.get("imgPerfil");
             String biografia = (String) updateData.get("biografia");
             Boolean isPrivate = (Boolean) updateData.get("isPrivate");
             
-            Perfil perfilActualizado = perfilService.updatePerfil(userId, imgPerfil, biografia, isPrivate);
+            Perfil perfilActualizado = perfilService.updatePerfil(userId, username, imgPerfil, biografia, isPrivate);
             
             response.put("success", true);
             response.put("message", "Perfil actualizado exitosamente");
@@ -164,9 +198,34 @@ public class PerfilController {
     }
     
     /**
-     * Agregar post al perfil
+     * Actualizar perfil desde formulario (Frontend) - Para el botón "Guardar cambios"
+     */
+    @PostMapping("/actualizar-frontend/{userId}")
+    public String actualizarPerfilFrontend(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String biografia,
+            @RequestParam(required = false) String imgPerfil,
+            Model model) {
+        
+        try {
+            Perfil perfilActualizado = perfilService.updatePerfil(userId, username, imgPerfil, biografia, null);
+            model.addAttribute("usuario", perfilActualizado);
+            model.addAttribute("mensaje", "Perfil actualizado exitosamente");
+            return "perfil";
+            
+        } catch (RuntimeException e) {
+            log.error("Error al actualizar perfil desde frontend para usuario {}: {}", userId, e.getMessage());
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * Agregar post al perfil - API REST
      */
     @PostMapping("/posts/{userId}")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> agregarPost(
             @PathVariable Long userId,
             @RequestBody Map<String, String> postData) {
@@ -201,9 +260,10 @@ public class PerfilController {
     }
     
     /**
-     * Eliminar post del perfil
+     * Eliminar post del perfil - API REST
      */
     @DeleteMapping("/posts/{userId}")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> eliminarPost(
             @PathVariable Long userId,
             @RequestBody Map<String, String> postData) {
@@ -238,9 +298,10 @@ public class PerfilController {
     }
     
     /**
-     * Seguir usuario
+     * Seguir usuario - API REST
      */
     @PostMapping("/seguir")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> seguirUsuario(@RequestBody Map<String, Long> followData) {
         Map<String, Object> response = new HashMap<>();
         
@@ -278,9 +339,10 @@ public class PerfilController {
     }
     
     /**
-     * Dejar de seguir usuario
+     * Dejar de seguir usuario - API REST
      */
     @PostMapping("/no-seguir")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> noSeguirUsuario(@RequestBody Map<String, Long> followData) {
         Map<String, Object> response = new HashMap<>();
         
@@ -312,9 +374,10 @@ public class PerfilController {
     }
     
     /**
-     * Obtener perfiles públicos populares
+     * Obtener perfiles públicos populares - API REST
      */
     @GetMapping("/publicos")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> getPerfilesPublicos() {
         Map<String, Object> response = new HashMap<>();
         
@@ -328,7 +391,7 @@ public class PerfilController {
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
-            log.error("No se encontró al usuario: {}", e.getMessage());
+            log.error("Error al obtener perfiles públicos: {}", e.getMessage());
             
             response.put("success", false);
             response.put("message", e.getMessage());
