@@ -1,14 +1,14 @@
 server:
-  port: 8086
+  port: 8087
   servlet:
-    context-path: /api/auth
+    context-path: /api/perfil
 
 spring:
   application:
-    name: instagram-auth-service
+    name: instagram-perfil-service
   
   datasource:
-    url: jdbc:h2:mem:instagram_auth;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:instagram_perfil;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
@@ -39,6 +39,6 @@ spring:
       
 logging:
   level:
-    com.instagram.auth: DEBUG
+    com.instagram.perfil: DEBUG
     org.springframework.web: DEBUG
     org.springframework.sql: DEBUG
