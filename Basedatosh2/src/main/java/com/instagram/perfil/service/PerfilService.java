@@ -25,17 +25,17 @@ public class PerfilService {
     }
     
     /**
-     * Crea un perfil para un usuario
+     * Crea un perfil básico para un usuario con username
      */
-    public Perfil createPerfil(Long userId) {
-        log.info("Creando perfil para usuario ID: {}", userId);
+    public Perfil createPerfil(Long userId, String username) {
+        log.info("Creando perfil para usuario ID: {} con username: {}", userId, username);
         
         // Verificar que no exista ya un perfil para este usuario
         if (perfilRepository.existsByUserId(userId)) {
             throw new RuntimeException("Ya existe un perfil para este usuario");
         }
         
-        Perfil nuevoPerfil = new Perfil(userId);
+        Perfil nuevoPerfil = new Perfil(userId,username);
         Perfil perfilGuardado = perfilRepository.save(nuevoPerfil);
         
         log.info("Perfil creado exitosamente para usuario ID: {}", userId);
@@ -43,16 +43,34 @@ public class PerfilService {
     }
     
     /**
+     * Crea un perfil para un usuario (método original mantenido para compatibilidad)
+     */
+//    public Perfil createPerfil(Long userId) {
+//        log.info("Creando perfil para usuario ID: {}", userId);
+//        
+//        // Verificar que no exista ya un perfil para este usuario
+//        if (perfilRepository.existsByUserId(userId)) {
+//            throw new RuntimeException("Ya existe un perfil para este usuario");
+//        }
+//        
+//        Perfil nuevoPerfil = new Perfil(userId);
+//        Perfil perfilGuardado = perfilRepository.save(nuevoPerfil);
+//        
+//        log.info("Perfil creado exitosamente para usuario ID: {}", userId);
+//        return perfilGuardado;
+//    }
+    
+    /**
      * Crea un perfil con datos iniciales
      */
-    public Perfil createPerfilWithData(Long userId, String imgPerfil, String biografia, Boolean isPrivate) {
-        log.info("Creando perfil con datos para usuario ID: {}", userId);
+    public Perfil createPerfilWithData(Long userId, String username, String imgPerfil, String biografia, Boolean isPrivate) {
+        log.info("Creando perfil con datos para usuario ID: {} con username: {}", userId, username);
         
         if (perfilRepository.existsByUserId(userId)) {
             throw new RuntimeException("Ya existe un perfil para este usuario");
         }
         
-        Perfil nuevoPerfil = new Perfil(userId, imgPerfil, biografia);
+        Perfil nuevoPerfil = new Perfil(userId,username, imgPerfil, biografia);
         if (isPrivate != null) {
             nuevoPerfil.setIsPrivate(isPrivate);
         }
@@ -82,7 +100,7 @@ public class PerfilService {
     /**
      * Actualiza información del perfil
      */
-    public Perfil updatePerfil(Long userId, String imgPerfil, String biografia, Boolean isPrivate) {
+    public Perfil updatePerfil(Long userId, String username, String imgPerfil, String biografia, Boolean isPrivate) {
         log.info("Actualizando perfil para usuario ID: {}", userId);
         
         Optional<Perfil> perfilOpt = perfilRepository.findByUserId(userId);
@@ -162,6 +180,8 @@ public class PerfilService {
             Perfil followerPerfil = followerPerfilOpt.get();
             followerPerfil.incrementSeguidos();
             perfilRepository.save(followerPerfil);
+        } else {
+            log.warn("No se encontró perfil para el usuario seguidor ID: {}", followerId);
         }
         
         // Incrementar seguidores del usuario seguido
@@ -170,6 +190,8 @@ public class PerfilService {
             Perfil followedPerfil = followedPerfilOpt.get();
             followedPerfil.incrementSeguidores();
             perfilRepository.save(followedPerfil);
+        } else {
+            log.warn("No se encontró perfil para el usuario seguido ID: {}", followedUserId);
         }
         
         log.info("Relación de seguimiento establecida entre usuarios {} y {}", followerId, followedUserId);
@@ -187,6 +209,8 @@ public class PerfilService {
             Perfil followerPerfil = followerPerfilOpt.get();
             followerPerfil.decrementSeguidos();
             perfilRepository.save(followerPerfil);
+        } else {
+            log.warn("No se encontró perfil para el usuario seguidor ID: {}", followerId);
         }
         
         // Decrementar seguidores del usuario no seguido
@@ -195,6 +219,8 @@ public class PerfilService {
             Perfil followedPerfil = followedPerfilOpt.get();
             followedPerfil.decrementSeguidores();
             perfilRepository.save(followedPerfil);
+        } else {
+            log.warn("No se encontró perfil para el usuario seguido ID: {}", followedUserId);
         }
         
         log.info("Relación de seguimiento eliminada entre usuarios {} y {}", followerId, followedUserId);

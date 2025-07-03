@@ -11,6 +11,7 @@ public class InstagramPerfilApplication {
     
     public static void main(String[] args) {
         SpringApplication.run(InstagramPerfilApplication.class, args);
+        
     }
     
     @Bean

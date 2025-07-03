@@ -1,5 +1,6 @@
 server:
   port: 8087
+  address: 0.0.0.0
   servlet:
     context-path: /api/perfil
 
@@ -33,9 +34,11 @@ spring:
   thymeleaf:
     cache: false
     
-  sql:
-    init:
-      mode: always
+  # Comentamos la inicialización de datos para evitar errores
+  # sql:
+  #   init:
+  #     mode: always
+  #     data-locations: classpath:data-perfil.sql
       
 logging:
   level:

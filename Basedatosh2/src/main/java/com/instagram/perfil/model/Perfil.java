@@ -23,6 +23,10 @@ public class Perfil {
     @NotNull(message = "ID de usuario es obligatorio")
     private Long userId;
     
+    @Column(name = "username", unique = true, nullable = false)
+    @NotNull(message = "Username es obligatorio")
+    private String username;
+    
     @Column(name = "img_perfil", length = 500)
     private String imgPerfil;
     
@@ -64,13 +68,14 @@ public class Perfil {
         this.posts = new ArrayList<>();
     }
     
-    public Perfil(Long userId) {
+    public Perfil(Long userId, String username) {
         this();
         this.userId = userId;
+        this.username = username;
     }
     
-    public Perfil(Long userId, String imgPerfil, String biografia) {
-        this(userId);
+    public Perfil(Long userId, String username, String imgPerfil, String biografia) {
+        this(userId, username);
         this.imgPerfil = imgPerfil;
         this.biografia = biografia;
     }
@@ -90,6 +95,14 @@ public class Perfil {
     
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
     }
     
     public String getImgPerfil() {
@@ -165,6 +178,39 @@ public class Perfil {
         this.updatedAt = updatedAt;
     }
     
+    // Métodos para compatibilidad con el frontend
+    public String getFotoPerfil() {
+        return this.imgPerfil;
+    }
+    
+    public void setFotoPerfil(String fotoPerfil) {
+        this.imgPerfil = fotoPerfil;
+    }
+    
+    public String getBio() {
+        return this.biografia;
+    }
+    
+    public void setBio(String bio) {
+        this.biografia = bio;
+    }
+    
+    public Integer getFollowers() {
+        return this.seguidores;
+    }
+    
+    public void setFollowers(Integer followers) {
+        this.seguidores = followers;
+    }
+    
+    public Integer getFollowing() {
+        return this.seguidos;
+    }
+    
+    public void setFollowing(Integer following) {
+        this.seguidos = following;
+    }
+    
     // Métodos de utilidad
     public void addPost(String postUrl) {
         if (this.posts == null) {
@@ -206,6 +252,7 @@ public class Perfil {
         return "Perfil{" +
                 "id=" + id +
                 ", userId=" + userId +
+                ", username='" + username + '\'' +
                 ", biografia='" + biografia + '\'' +
                 ", numPosts=" + numPosts +
                 ", seguidores=" + seguidores +
