@@ -18,9 +18,19 @@ public interface PerfilRepository extends JpaRepository<Perfil, Long> {
     Optional<Perfil> findByUserId(Long userId);
     
     /**
+     * Busca perfil por username
+     */
+    Optional<Perfil> findByUsername(String username);
+    
+    /**
      * Verifica si existe un perfil para el usuario
      */
     boolean existsByUserId(Long userId);
+    
+    /**
+     * Verifica si existe un username
+     */
+    boolean existsByUsername(String username);
     
     /**
      * Busca perfiles públicos ordenados por seguidores (para explorar)

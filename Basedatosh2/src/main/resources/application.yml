@@ -1,43 +1,44 @@
 server:
-  port: 8086
+  port: 9090
+  address: 0.0.0.0
   servlet:
     context-path: /api/auth
 
 spring:
   application:
     name: instagram-auth-service
-  
+
   datasource:
     url: jdbc:h2:mem:instagram_auth;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
-    
+
   h2:
     console:
       enabled: true
       path: /h2-console-auth
       settings:
         web-allow-others: true
-        
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
-    defer-datasource-initialization: true
-        
+
   thymeleaf:
     cache: false
-    
+
   sql:
     init:
       mode: always
       data-locations: classpath:data-auth.sql
-      
+
 logging:
   level:
     com.instagram.auth: DEBUG
